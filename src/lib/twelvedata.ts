@@ -3,8 +3,9 @@ import type { MarketPrice } from '@/types';
 const BASE_URL = 'https://api.twelvedata.com';
 const API_KEY = process.env.TWELVE_DATA_API_KEY!;
 
-// SP500 en Twelve Data se identifica como 'SPX' (índice)
-const SP500_SYMBOL = 'SPX';
+// SPY = ETF del S&P 500, disponible en free tier de Twelve Data
+// SPX (índice) requiere plan Pro+. SPY tiene comportamiento idéntico para paper trading.
+const SP500_SYMBOL = 'SPY';
 
 interface TwelveDataQuote {
   symbol: string;
@@ -50,15 +51,21 @@ export async function getSP500Price(): Promise<MarketPrice> {
     throw new Error(`Twelve Data error: ${response.status}`);
   }
 
-  const data: TwelveDataQuote = await response.json();
+  const data = await response.json();
+
+  if (data.status === 'error') {
+    throw new Error(`Twelve Data API: ${data.message}`);
+  }
+
+  const quote = data as TwelveDataQuote;
 
   return {
-    symbol: data.symbol,
-    price: parseFloat(data.close),
-    change: parseFloat(data.change),
-    change_percent: parseFloat(data.percent_change),
-    timestamp: data.datetime,
-    is_market_open: data.is_market_open,
+    symbol: quote.symbol,
+    price: parseFloat(quote.close),
+    change: parseFloat(quote.change),
+    change_percent: parseFloat(quote.percent_change),
+    timestamp: quote.datetime,
+    is_market_open: quote.is_market_open,
   };
 }
 
