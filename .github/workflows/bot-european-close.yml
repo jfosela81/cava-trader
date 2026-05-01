@@ -1,0 +1,27 @@
+name: Bot — European Close (17:00 CEST)
+
+on:
+  schedule:
+    # 15:00 UTC = 17:00 CEST (verano) / 16:00 CET (invierno → ajustar a 0 15)
+    - cron: '0 15 * * 1-5'
+  workflow_dispatch: # permite ejecutarlo manualmente desde GitHub
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call European Close endpoint
+        run: |
+          curl -s -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BOT_BASE_URL }}/api/bot/european-close" \
+            | tee status_code.txt
+
+          echo "Response:"
+          cat response.json
+
+          STATUS=$(cat status_code.txt)
+          if [ "$STATUS" != "200" ]; then
+            echo "Error: HTTP $STATUS"
+            exit 1
+          fi

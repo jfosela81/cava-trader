@@ -1,0 +1,26 @@
+name: Bot — Institutional Push (21:00 CEST)
+
+on:
+  schedule:
+    - cron: '0 19 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Institutional Push endpoint
+        run: |
+          curl -s -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BOT_BASE_URL }}/api/bot/institutional-push" \
+            | tee status_code.txt
+
+          echo "Response:"
+          cat response.json
+
+          STATUS=$(cat status_code.txt)
+          if [ "$STATUS" != "200" ]; then
+            echo "Error: HTTP $STATUS"
+            exit 1
+          fi
