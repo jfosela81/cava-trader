@@ -5,6 +5,10 @@
       "schedule": "0 15 * * 1-5"
     },
     {
+      "path": "/api/bot/european-close-exit",
+      "schedule": "0 16 * * 1-5"
+    },
+    {
       "path": "/api/bot/institutional-push",
       "schedule": "0 19 * * 1-5"
     },
