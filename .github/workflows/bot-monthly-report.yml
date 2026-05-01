@@ -1,0 +1,36 @@
+name: Bot — Monthly Calibration Report
+
+on:
+  schedule:
+    # Primer día de cada mes a las 09:00 CEST (07:00 UTC)
+    # Genera el informe del mes anterior con todas las métricas de calibración
+    - cron: '0 7 1 * *'
+  workflow_dispatch:
+
+jobs:
+  monthly-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate monthly calibration report
+        run: |
+          curl -s -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.BOT_BASE_URL }}/api/bot/monthly-report" \
+            | tee status_code.txt
+
+          echo ""
+          echo "=== MONTHLY CALIBRATION REPORT ==="
+          cat response.json | python3 -m json.tool 2>/dev/null || cat response.json
+
+          STATUS=$(cat status_code.txt)
+          if [ "$STATUS" != "200" ]; then
+            echo "Error: HTTP $STATUS"
+            exit 1
+          fi
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "✅ Monthly report generated and saved to Supabase."
+          echo "Open https://cava-trader.vercel.app to review the data."
+          echo "Then visit your Cursor AI chat for the monthly calibration review."
