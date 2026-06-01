@@ -46,6 +46,10 @@ def main():
     sharpe = r.get("sharpe_ratio")
     win_rate = r["win_rate"]
 
+    sharpe_val  = f"{sharpe:.2f}" if sharpe is not None else "Insuf. datos"
+    sharpe_eval = (f"{trend(sharpe, 1)} {'Bueno (>1)' if sharpe >= 1 else 'Por debajo de 1'}"
+                   if sharpe is not None else "—")
+
     by_s = r.get("by_strategy", {})
 
     def strat_row(key, label):
@@ -85,7 +89,7 @@ def main():
         f"| **Win Rate** | {win_rate:.1f}% | {trend(win_rate, 50)} {'Bueno (>50%)' if win_rate >= 50 else 'Por debajo del 50%'} |",
         f"| **Profit Factor** | {pf:.2f} | {pf_stars} {'Excelente' if pf >= 2 else 'Bueno' if pf >= 1.5 else 'Aceptable' if pf >= 1 else '⚠️ Por debajo de 1'} |",
         f"| **Expectancy** | {fmt_usd(r['expectancy'])} por trade | {trend(r['expectancy'])} |",
-        f"| **Sharpe Ratio** | {f'{sharpe:.2f}' if sharpe is not None else 'Insuf. datos'} | {f'{trend(sharpe, 1)} {\"Bueno (>1)\" if sharpe and sharpe >= 1 else \"Por debajo de 1\"}' if sharpe is not None else '—'} |",
+        f"| **Sharpe Ratio** | {sharpe_val} | {sharpe_eval} |",
         f"| **Max Drawdown mes** | {fmt_usd(r['max_drawdown_month'])} | {trend(-r['max_drawdown_month'], -50)} |",
         f"",
         f"---",
