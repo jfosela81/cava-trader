@@ -21,7 +21,7 @@ import {
   isStopHit,
   isTpHit,
 } from '@/lib/risk';
-import { getFullQuote } from '@/lib/twelvedata';
+import { getFullQuote, getSP500Candles } from '@/lib/twelvedata';
 import type { Trade, StrategyName, TradeDirection, TradeStatus } from '@/types';
 
 const MAX_TRADES_PER_DAY = parseInt(process.env.BOT_MAX_TRADES_PER_DAY ?? '2');
@@ -124,8 +124,16 @@ export async function closeOpenPosition(params: {
 }
 
 /**
- * Comprueba la posición abierta contra SL/TP. Si fue alcanzado, la cierra.
- * Nota: solo verifica el precio actual del momento del cron, no la historia de velas.
+ * Comprueba si la posición abierta tocó SL o TP en algún momento desde su apertura.
+ *
+ * En lugar de mirar solo el precio actual (que puede haber rebotado), usa los
+ * máximos y mínimos de cada vela de 5min desde la apertura del trade.
+ * Esto simula correctamente el comportamiento tick-by-tick sin polling continuo.
+ *
+ * Para una SHORT: SL se toca si el HIGH de alguna vela >= stop_loss
+ *                 TP se toca si el LOW  de alguna vela <= take_profit
+ * Para una LONG:  SL se toca si el LOW  de alguna vela <= stop_loss
+ *                 TP se toca si el HIGH de alguna vela >= take_profit
  */
 export async function checkAndCloseIfHit(): Promise<{
   action: 'closed_sl' | 'closed_tp' | 'no_position' | 'no_hit';
@@ -135,17 +143,52 @@ export async function checkAndCloseIfHit(): Promise<{
   const openTrade = await getOpenTrade();
   if (!openTrade) return { action: 'no_position' };
 
-  const quote = await getFullQuote();
-  const currentPrice = quote.price;
+  // Obtener velas de 5min (máx 24 = 2h, suficiente para cubrir el intervalo entre crons)
+  const candles = await getSP500Candles('5min', 24);
 
-  if (isStopHit(currentPrice, openTrade.stop_loss, openTrade.direction)) {
-    const result = await closeOpenPosition({ exitPrice: openTrade.stop_loss, status: 'closed_sl' });
-    return { action: 'closed_sl', trade: result?.trade, price: openTrade.stop_loss };
+  // Filtrar solo las velas posteriores a la apertura del trade
+  const entryTime = new Date(openTrade.entry_time).getTime();
+  const relevantCandles = candles.filter(
+    c => new Date(c.datetime.replace(' ', 'T') + 'Z').getTime() >= entryTime
+  );
+
+  const sl = openTrade.stop_loss;
+  const tp = openTrade.take_profit;
+  const dir = openTrade.direction;
+
+  for (const candle of relevantCandles) {
+    const high = parseFloat(candle.high);
+    const low  = parseFloat(candle.low);
+
+    // Comprobar SL primero (peor caso)
+    const slHit = dir === 'long' ? low <= sl : high >= sl;
+    const tpHit = dir === 'long' ? high >= tp : low <= tp;
+
+    if (slHit) {
+      const result = await closeOpenPosition({ exitPrice: sl, status: 'closed_sl' });
+      console.log(`[BOT] SL detectado via vela ${candle.datetime} — high: ${high}, low: ${low}`);
+      return { action: 'closed_sl', trade: result?.trade, price: sl };
+    }
+
+    if (tpHit) {
+      const result = await closeOpenPosition({ exitPrice: tp, status: 'closed_tp' });
+      console.log(`[BOT] TP detectado via vela ${candle.datetime} — high: ${high}, low: ${low}`);
+      return { action: 'closed_tp', trade: result?.trade, price: tp };
+    }
   }
 
-  if (isTpHit(currentPrice, openTrade.take_profit, openTrade.direction)) {
-    const result = await closeOpenPosition({ exitPrice: openTrade.take_profit, status: 'closed_tp' });
-    return { action: 'closed_tp', trade: result?.trade, price: openTrade.take_profit };
+  // Si no hay velas relevantes, fallback al precio actual
+  if (relevantCandles.length === 0) {
+    const quote = await getFullQuote();
+    const currentPrice = quote.price;
+    if (isStopHit(currentPrice, sl, dir)) {
+      const result = await closeOpenPosition({ exitPrice: sl, status: 'closed_sl' });
+      return { action: 'closed_sl', trade: result?.trade, price: sl };
+    }
+    if (isTpHit(currentPrice, tp, dir)) {
+      const result = await closeOpenPosition({ exitPrice: tp, status: 'closed_tp' });
+      return { action: 'closed_tp', trade: result?.trade, price: tp };
+    }
   }
 
   return { action: 'no_hit' };

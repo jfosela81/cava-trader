@@ -14,9 +14,20 @@ import { getFullQuote } from '@/lib/twelvedata';
 
 export const dynamic = 'force-dynamic';
 
+// Desactivar via variable de entorno: BOT_INSTITUTIONAL_PUSH_ENABLED=false
+const STRATEGY_ENABLED = process.env.BOT_INSTITUTIONAL_PUSH_ENABLED !== 'false';
+
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!STRATEGY_ENABLED) {
+    return NextResponse.json({
+      success: true,
+      action: 'disabled',
+      message: 'Institutional Push desactivada (BOT_INSTITUTIONAL_PUSH_ENABLED=false). En modo observación.',
+    });
   }
 
   try {
