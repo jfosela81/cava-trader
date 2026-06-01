@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write  # necesario para hacer commit del .md al repo
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   monthly-report:
     runs-on: ubuntu-latest
