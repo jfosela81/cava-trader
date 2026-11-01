@@ -1,6 +1,6 @@
-# 📊 Cava Trader — Informe Mensual September 2026
+# 📊 Cava Trader — Informe Mensual October 2026
 
-> Generado automáticamente el 1 de September 2026. 
+> Generado automáticamente el 1 de October 2026. 
 > Datos reales de paper trading · Sistema de Especulación de José Luis Cava · SP500 intradía.
 
 ---
@@ -9,9 +9,9 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Capital inicio de mes | $9934.92 |
-| Capital fin de mes | $9957.73 |
-| P&L del mes | +$22.81 (+0.23%) |
+| Capital inicio de mes | $9957.73 |
+| Capital fin de mes | $10009.16 |
+| P&L del mes | +$51.43 (+0.52%) |
 
 ---
 
@@ -20,8 +20,8 @@
 | Métrica | Valor | Evaluación |
 |---------|-------|------------|
 | **Win Rate** | 66.7% | 🟢 Bueno (>50%) |
-| **Profit Factor** | 1.41 | ★★★☆☆ Aceptable |
-| **Expectancy** | +$1.90 por trade | 🟢 |
+| **Profit Factor** | 2.36 | ★★★★★ Excelente |
+| **Expectancy** | +$4.29 por trade | 🟢 |
 | **Sharpe Ratio** | Insuf. datos | — |
 | **Max Drawdown mes** | +$0.00 | 🟢 |
 
@@ -33,14 +33,14 @@
 |---------|-------|
 | Días con trading | 0 |
 | Trades ejecutados | 12 |
-| Señales descartadas | 22 (max trades/día, pausas) |
+| Señales descartadas | 23 (max trades/día, pausas) |
 | TP alcanzados ✅ | 0 |
 | SL alcanzados ❌ | 0 |
 | Cerrados al EOD ⏱ | 12 |
-| Mejor trade | +$30.69 |
-| Peor trade | $-24.75 |
-| Ganancia media | +$9.80 |
-| Pérdida media | +$13.89 |
+| Mejor trade | +$22.37 |
+| Peor trade | $-25.77 |
+| Ganancia media | +$11.17 |
+| Pérdida media | +$9.47 |
 
 ---
 
@@ -48,7 +48,7 @@
 
 | Estrategia | Trades | Win Rate | P&L | Profit Factor | Avg Win / Avg Loss |
 |-----------|--------|----------|-----|---------------|-------------------|
-| European Close (17h SHORT) | 12 | 67% | +$22.81 | 1.41 | +$9.80 / +$13.89 |
+| European Close (17h SHORT) | 12 | 67% | +$51.43 | 2.36 | +$11.17 / +$9.47 |
 | Institutional Push (21h LONG) | — | — | — | — | — |
 | Mean Reversion (apertura) | — | — | — | — | — |
 
@@ -72,4 +72,4 @@
 
 ---
 
-*Fuente: [cava-trader.vercel.app](https://cava-trader.vercel.app) · Datos en Supabase tabla `cava_monthly_report` · Mes: `2026-09`*
+*Fuente: [cava-trader.vercel.app](https://cava-trader.vercel.app) · Datos en Supabase tabla `cava_monthly_report` · Mes: `2026-10`*
